@@ -19,13 +19,14 @@ function onSocketClose() {
   console.log("Dissconnected from the Browser");
 }
 
-function onSocketMessage(message) {
-  console.log(message);
-}
+const sockets = [];
+
 wss.on("connection", (socket) => {
+  sockets.push(socket); //연결된 브라우저에 맞게 소켓추가
   console.log("Connected to Brwoser");
   socket.on("close", onSocketClose);
-  socket.on("message", onSocketMessage);
-  socket.send("hello!!!"); //여기서 데이터를 보내면된다.
+  socket.on("message", (message) => {
+    sockets.forEach((aSocket) => aSocket.send(message.toString("utf8")));
+  });
 });
 server.listen(3000, handleListen);
