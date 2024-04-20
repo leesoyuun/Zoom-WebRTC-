@@ -23,10 +23,20 @@ const sockets = [];
 
 wss.on("connection", (socket) => {
   sockets.push(socket); //연결된 브라우저에 맞게 소켓추가
+  socket["nickname"] = "anon";
   console.log("Connected to Brwoser");
   socket.on("close", onSocketClose);
-  socket.on("message", (message) => {
-    sockets.forEach((aSocket) => aSocket.send(message.toString("utf8")));
+  socket.on("message", (msg) => {
+    const message = JSON.parse(msg);
+    switch (message.type) {
+      case "new_message":
+        sockets.forEach((aSocket) =>
+          // aSocket.send(message.payload.toString("utf8"))
+          aSocket.send(`${socket.nickname}: ${message.payload}`)
+        );
+      case "nickname":
+        socket["nickname"] = message.payload;
+    }
   });
 });
 server.listen(3000, handleListen);
