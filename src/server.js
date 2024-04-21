@@ -16,11 +16,16 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
+  socket.onAny((e) => {
+    console.log(`Socket Event : ${e}`);
+  });
   socket.on("enter_room", (roomName, done) => {
-    console.log(roomName);
-    setTimeout(() => {
-      done("hello from the backend");
-    }, 15000);
+    console.log(socket.rooms); //Set(1) { 'M6nyJnJAiTpIdi5vAAAD' }
+    socket.join(roomName); // 방에 들어가기 위함
+    console.log(socket.rooms);
+    //Set(2) { 'M6nyJnJAiTpIdi5vAAAD', '1212' }
+    //어떤 방에 있는지 확인
+    done();
   });
 }); //백엔드에서 connection을 받을 준비가 되었음.(fe - be connect)
 
