@@ -28,6 +28,7 @@ function publiceRooms() {
       publicRooms.push(key);
     }
   });
+  return publicRooms;
 }
 
 wsServer.on("connection", (socket) => {
@@ -40,11 +41,15 @@ wsServer.on("connection", (socket) => {
     socket.join(roomName); // 방에 들어가기 위함
     done();
     socket.to(roomName).emit("welcome", socket.nickname);
+    wsServer.sockets.emit("room_change", publiceRooms());
   });
   socket.on("disconnecting", () => {
     socket.rooms.forEach((room) =>
       socket.to(room).emit("bye", socket.nickname)
     );
+  });
+  socket.on("disconnect", () => {
+    wsServer.sockets.emit("room_change", publiceRooms());
   });
   socket.on("new_message", (msg, room, done) => {
     socket.to(room).emit("new_message", `${socket.nickname} : ${msg}`);
