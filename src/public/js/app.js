@@ -16,11 +16,23 @@ function addMessage(message) {
   ul.appendChild(li);
 }
 
+function handleMessageSubmit(e) {
+  e.preventDefault();
+  const input = room.querySelector("input");
+  const value = input.value;
+  socket.emit("new_message", input.value, roomName, () => {
+    addMessage(`You: ${value}`);
+  });
+  input.value = "";
+}
+
 function showRoom() {
   welcome.hidden = true;
   room.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
+  const form = room.querySelector("form");
+  form.addEventListener("submit", handleMessageSubmit);
 }
 // backend에서 실행시킨것.
 // 사용하기 위해서는 가장 마지막 인자로 넘겨주면된다.
@@ -39,3 +51,9 @@ form.addEventListener("submit", handleRoomSubmit);
 socket.on("welcome", () => {
   addMessage("someone Joined");
 });
+
+socket.on("bye", () => {
+  addMessage("someone Left ㅠㅠ");
+});
+
+socket.on("new_message", addMessage);
