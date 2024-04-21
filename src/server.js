@@ -15,11 +15,14 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
-wsServer.on("connection", socket =>{
-  console.log(socket)
-}) //백엔드에서 connection을 받을 준비가 되었음.(fe - be connect)
-
-
+wsServer.on("connection", (socket) => {
+  socket.on("enter_room", (msg, done) => {
+    console.log(msg);
+    setTimeout(() => {
+      done();
+    }, 10000);
+  });
+}); //백엔드에서 connection을 받을 준비가 되었음.(fe - be connect)
 
 // const sockets = [];
 
