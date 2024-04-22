@@ -121,22 +121,43 @@ socket.on("welcome", async () => {
 });
 
 socket.on("offer", async (offer) => {
+  console.log("received the offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
   myPeerConnection.setLocalDescription(answer);
   socket.emit("answer", answer, roomName);
+  console.log("sent the answer");
 });
 //safari에서 실행
 
 socket.on("answer", (answer) => {
+  console.log("received the answer");
   myPeerConnection.setRemoteDescription(answer);
 });
+
+socket.on("ice", (ice) => {
+  console.log("received candidate");
+  myPeerConnection.addIceCandidate(ice);
+});
+
 //RTC Code
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
   //RTCPeerConnection은 peer간 연결을 위해 사용되는 인터페이스로 peer간 연결을 유지하고
   //관리하는데 사용되는 함수를 제공
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+function handleIce(data) {
+  console.log("sent candidate");
+  socket.emit("ice", data.candidate, roomName); //크롬와 사파리 브라우저가 candidate들을 주고 받는 뜻.
+}
+
+function handleAddStream(data) {
+  const peerFace = document.getElementById("peerFace");
+  peerFace.srcObject = data.stream;
 }
