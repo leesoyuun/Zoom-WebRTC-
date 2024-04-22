@@ -12,6 +12,7 @@ call.hidden = true;
 let myStream;
 let muted = false;
 let cameraOff = false;
+let myPeerConnection;
 
 async function getCameras() {
   try {
@@ -93,10 +94,11 @@ camerasSelect.addEventListener("input", handleCameraChange);
 const welcome = document.getElementById("welcome");
 welcomeForm = welcome.querySelector("form");
 
-function startMedia() {
+async function startMedia() {
   welcome.hidden = true;
   call.hidden = false;
-  getMedia(); // 카메라 / 마이크 불러오는 함수
+  await getMedia(); // 카메라 / 마이크 불러오는 함수
+  makeConnection();
 }
 
 function handleWelcomeSubmit(e) {
@@ -109,6 +111,22 @@ function handleWelcomeSubmit(e) {
 welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 //Socket code
-socket.on("welcome", () => {
-  console.log("someone joined");
+socket.on("welcome", async () => {
+  const offer = await myPeerConnection.createOffer();
+  myPeerConnection.setLocalDescription(offer);
+  console.log("sent the offer");
+  socket.emit("offer", offer, roomName);
+  //safari가 방에 참가하면 chrome 브라우저에서 실행되는 코드
 });
+
+socket.on("offer", (offer) => {
+  console.log(offer);
+});
+//safari에서 실행
+//RTC Code
+function makeConnection() {
+  myPeerConnection = new RTCPeerConnection();
+  myStream
+    .getTracks()
+    .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
