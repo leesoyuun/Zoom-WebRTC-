@@ -94,17 +94,18 @@ camerasSelect.addEventListener("input", handleCameraChange);
 const welcome = document.getElementById("welcome");
 welcomeForm = welcome.querySelector("form");
 
-async function startMedia() {
+async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
   await getMedia(); // 카메라 / 마이크 불러오는 함수
   makeConnection();
 }
 
-function handleWelcomeSubmit(e) {
+async function handleWelcomeSubmit(e) {
   e.preventDefault();
   const input = welcomeForm.querySelector("input");
-  socket.emit("join_room", input.value, startMedia);
+  await initCall();
+  socket.emit("join_room", input.value);
   roomName = input.value;
   input.value = "";
 }
@@ -119,13 +120,22 @@ socket.on("welcome", async () => {
   //safari가 방에 참가하면 chrome 브라우저에서 실행되는 코드
 });
 
-socket.on("offer", (offer) => {
-  console.log(offer);
+socket.on("offer", async (offer) => {
+  myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  socket.emit("answer", answer, roomName);
 });
 //safari에서 실행
+
+socket.on("answer", (answer) => {
+  myPeerConnection.setRemoteDescription(answer);
+});
 //RTC Code
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  //RTCPeerConnection은 peer간 연결을 위해 사용되는 인터페이스로 peer간 연결을 유지하고
+  //관리하는데 사용되는 함수를 제공
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
