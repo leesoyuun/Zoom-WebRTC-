@@ -149,7 +149,20 @@ socket.on("ice", (ice) => {
 
 //RTC Code
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection();
+  myPeerConnection = new RTCPeerConnection({
+    //stun server : 내 장치에 공용 주소를 알려주는 서버
+    iceServers: [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302",
+        ],
+      },
+    ],
+  });
   //RTCPeerConnection은 peer간 연결을 위해 사용되는 인터페이스로 peer간 연결을 유지하고
   //관리하는데 사용되는 함수를 제공
   myPeerConnection.addEventListener("icecandidate", handleIce);
